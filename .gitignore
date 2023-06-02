@@ -1,4 +1,5 @@
 /.idea
 /vendor
+/tmp
 rss-feed
 .env

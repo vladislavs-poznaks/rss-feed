@@ -1,6 +1,8 @@
 package main
 
 import (
+	"database/sql"
+	"github.com/vladislavs-poznaks/rss-feed/internal/database"
 	"log"
 	"net/http"
 	"os"
@@ -8,7 +10,12 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
+
+type apiConfig struct {
+	DB *database.Queries
+}
 
 func main() {
 	err := godotenv.Load()
@@ -20,8 +27,21 @@ func main() {
 	port := os.Getenv("PORT")
 
 	if port == "" {
-		log.Fatal("Undefined port environment variable")
+		log.Fatal("Undefined port environment variable: PORT")
 	}
+
+	dbUrl := os.Getenv("DB_URL")
+
+	if dbUrl == "" {
+		log.Fatal("Undefined port environment variable: DB_URL")
+	}
+
+	conn, err := sql.Open("postgres", dbUrl)
+	if err != nil {
+		log.Fatal("Can't connect to database: ", err)
+	}
+
+	apiCfg := apiConfig{DB: database.New(conn)}
 
 	router := chi.NewRouter()
 
@@ -37,6 +57,7 @@ func main() {
 	v1Router := chi.NewRouter()
 	v1Router.Get("/ready", handleReady)
 	v1Router.Get("/error", handleError)
+	v1Router.Post("/users", apiCfg.handleCreateUser)
 
 	router.Mount("/v1", v1Router)
 
