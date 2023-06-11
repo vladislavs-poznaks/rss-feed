@@ -32,7 +32,12 @@ func (apiCfg *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request
 
 	if err != nil {
 		respondWithError(w, 400, fmt.Sprintf("Could not create a user: %v", err))
+		return
 	}
 
 	respondWithJson(w, 201, databaseUserToUser(user))
+}
+
+func (apiCfg *apiConfig) handleGetUser(w http.ResponseWriter, r *http.Request, user database.User) {
+	respondWithJson(w, 200, databaseUserToUser(user))
 }
