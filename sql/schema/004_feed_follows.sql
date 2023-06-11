@@ -7,7 +7,7 @@ CREATE TABLE feed_follows
     feed_id    UUID      NOT NULL REFERENCES feeds (id) ON DELETE CASCADE,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
-    CONSTRAINT UNIQUE (user_id, feed_id)
+    UNIQUE (user_id, feed_id)
 );
 
 -- +goose Down
