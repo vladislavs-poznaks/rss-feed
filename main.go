@@ -2,15 +2,16 @@ package main
 
 import (
 	"database/sql"
-	"github.com/vladislavs-poznaks/rss-feed/internal/database"
-	"log"
-	"net/http"
-	"os"
-
+	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/vladislavs-poznaks/rss-feed/internal/database"
+	"log"
+	"net/http"
+	"os"
+	"time"
 )
 
 type apiConfig struct {
@@ -41,7 +42,11 @@ func main() {
 		log.Fatal("Can't connect to database: ", err)
 	}
 
-	apiCfg := apiConfig{DB: database.New(conn)}
+	db := database.New(conn)
+
+	apiCfg := apiConfig{DB: db}
+
+	go scrape(db, 10, time.Minute)
 
 	router := chi.NewRouter()
 
@@ -55,6 +60,17 @@ func main() {
 	}))
 
 	v1Router := chi.NewRouter()
+	v1Router.Get("/test", func(w http.ResponseWriter, r *http.Request) {
+		feed, e := getRssService("https://wagslane.dev/index.xml")
+
+		if e != nil {
+			respondWithError(w, 400, fmt.Sprintf("Err: %v", e))
+			return
+		}
+
+		respondWithJson(w, 200, feed)
+	})
+
 	v1Router.Get("/ready", handleReady)
 	v1Router.Get("/error", handleError)
 	v1Router.Post("/users", apiCfg.handleCreateUser)
