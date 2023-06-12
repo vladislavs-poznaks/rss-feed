@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/vladislavs-poznaks/rss-feed/internal/database"
 	"log"
+	"strings"
 	"sync"
 	"time"
 )
@@ -84,6 +85,9 @@ func scrapeFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 		})
 
 		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key") {
+				continue
+			}
 			log.Println("Error creating post", err)
 		}
 	}
